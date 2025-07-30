@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<title>Windows Desktop</title>
+<style>
+  body { margin:0; padding:0; height:100vh; overflow:hidden; font-family:Tahoma, Arial, sans-serif; }
+  #desktop {
+    position:relative;
+    width:100%;
+    height:calc(100% - 30px);
+    background:url('old-windows-2vzmbvojwv0j5ua0.jpg') no-repeat center center/cover;
+  }
+  .icon {
+    position:absolute;
+    width:70px;
+    color:#fff;
+    text-shadow:1px 1px 2px #000;
+    cursor:default;
+    text-align:center;
+    user-select:none;
+  }
+  .icon .emoji { font-size:40px; }
+  .icon img { width:40px; height:40px; display:block; margin:0 auto; }
+  .icon .label { display:block; font-size:12px; margin-top:2px; }
+  #taskbar {
+    position:fixed;
+    bottom:0; left:0; right:0;
+    height:30px;
+    background:#02599C;
+    color:#fff;
+    display:flex; align-items:center;
+    z-index:1000;
+  }
+  #start-button {
+    background:#0178D4;
+    color:#fff;
+    padding:4px 8px;
+    margin:0 2px;
+    border-radius:2px;
+    cursor:pointer;
+    user-select:none;
+  }
+  #start-menu {
+    display:none;
+    flex-direction:column;
+    position:fixed;
+    bottom:30px;
+    left:0;
+    width:180px;
+    background:#F5F5F5;
+    border:1px solid #666;
+    z-index:2000;
+  }
+  #start-menu a {
+    padding:6px 12px;
+    font-size:14px;
+    color:#000;
+    text-decoration:none;
+  }
+  #start-menu a:hover { background:#DDE8F5; }
+  #tray { margin-left:auto; padding-right:10px; font-size:13px; font-family:'Courier New', monospace; }
+  .overlay {
+    position:fixed;
+    top:0; left:0; right:0; bottom:0;
+    background:rgba(0,0,0,0.5);
+    display:none;
+    justify-content:center;
+    align-items:center;
+    z-index:3000;
+  }
+  .window {
+    background:#C0C0C0;
+    border:2px solid #404040;
+    width:340px;
+    box-shadow:4px 4px 10px rgba(0,0,0,0.5);
+  }
+  .window .title-bar {
+    background:#000080;
+    color:#fff;
+    padding:4px 6px;
+    font-weight:bold;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+  }
+  .window .title-bar .close-btn { cursor:pointer; padding:0 4px; }
+  .window .content { padding:12px; background:#C0C0C0; }
+  #info-bar { background:#B0B0B0; padding:4px; display:flex; justify-content:space-between; align-items:center; font-size:14px; }
+  #minesweeper-board { display:grid; grid-template-columns:repeat(9, 30px); grid-template-rows:repeat(9, 30px); }
+  .cell {
+    width:30px; height:30px;
+    border:1px solid #808080;
+    background:#E0E0E0;
+    line-height:30px;
+    text-align:center;
+    font-weight:bold;
+    user-select:none;
+  }
+  .cell.revealed { background:#B8CFE5; border-color:#7A9ACF; }
+  /* Vinted overlay buttons */
+  #vinted-overlay .btns { display:grid; grid-template-columns:repeat(2, 1fr); gap:10px; padding:12px; }
+  #vinted-overlay .btns button { display:flex; flex-direction:column; align-items:center; justify-content:center; border:1px solid #404040; background:#E0E0E0; padding:8px; font-size:12px; cursor:pointer; }
+  #vinted-overlay .btns button:hover { background:#D0D0D0; }
+  /* Art gallery styles */
+  #art-overlay .gallery { display:flex; flex-wrap:wrap; gap:10px; margin-top:10px; }
+  #art-overlay .art-item { display:flex; flex-direction:column; align-items:center; margin-bottom:10px; }
+  #art-overlay .art-item img { width:80px; height:80px; object-fit:cover; border:1px solid #666; }
+  #art-overlay .art-item button { margin-top:4px; font-size:10px; cursor:pointer; }
+</style>
+</head>
+<body>
+<div id="desktop">
+  <!-- System icons -->
+  <div class="icon" style="top:20px; left:20px;" data-message="Mój komputer jest obecnie niedostępny.">
+    <div class="emoji">🖥️</div><span class="label">Mój komputer</span>
+  </div>
+  <div class="icon" style="top:20px; left:100px;" data-message="Brak dokumentów.">
+    <div class="emoji">📁</div><span class="label">Dokumenty</span>
+  </div>
+  <div class="icon" style="top:20px; left:180px;" data-message="Kosz jest pusty.">
+    <div class="emoji">🗑️</div><span class="label">Kosz</span>
+  </div>
+  <!-- Profiles -->
+  <div class="icon" style="top:20px; left:260px;" data-href="https://www.instagram.com/pricecheck.store/">
+    <div class="emoji">📸</div><span class="label">Instagram</span>
+  </div>
+  <div class="icon" style="top:20px; left:340px;" data-href="https://www.ebay.com/usr/pricecheck.store">
+    <div class="emoji">🛍️</div><span class="label">eBay</span>
+  </div>
+  <div class="icon" style="top:110px; left:20px;" data-href="https://www.grailed.com/pricecheckstore">
+    <div class="emoji"><img src="grailed-logo.png" alt="Grailed"></div><span class="label">Grailed</span>
+  </div>
+  <!-- Vinted folder -->
+  <div id="vinted-icon" class="icon" style="top:110px; left:100px;" data-action="openVinted">
+    <div class="emoji"><img src="vinted.png" alt="Vinted" style="width:40px; height:40px;"></div><span class="label">Vinted</span>
+  </div>
+  <!-- Other icons -->
+  <div class="icon" style="top:200px; left:20px;" data-href="./newsletter.html">
+    <div class="emoji">📬</div><span class="label">Newsletter</span>
+  </div>
+  <div id="saper-icon" class="icon" style="top:200px; left:100px;" data-action="openMinesweeper">
+    <div class="emoji">💣</div><span class="label">Saper</span>
+  </div>
+  <div id="headrace-icon" class="icon" style="top:200px; left:180px;" data-action="openHeadrace">
+    <div class="emoji"><img src="headrace-icon.png" alt="Headrace" style="width:40px;height:40px;"></div><span class="label">Headrace</span>
+  </div>
+  <div id="art-icon" class="icon" style="top:280px; left:20px;" data-action="openArt">
+    <div class="emoji"><img src="art-icon.png" alt="ART" style="width:40px;height:40px;"></div><span class="label">ART</span>
+  </div>
+  <div id="mail-icon" class="icon" style="top:280px; left:100px;" data-href="mailto:pricecheckstore@gmail.com">
+    <div class="emoji">📧</div><span class="label">Mail</span>
+  </div>
+</div>
+<!-- Taskbar -->
+<div id="taskbar">
+  <div id="start-button">Start</div>
+  <div id="start-menu">
+    <a href="https://www.instagram.com/pricecheck.store/" target="_blank">Instagram</a>
+    <a href="https://www.ebay.com/usr/pricecheck.store" target="_blank">eBay</a>
+    <a href="https://www.grailed.com/pricecheckstore" target="_blank">Grailed</a>
+    <a href="#" onclick="openVinted(); return false;">Vinted</a>
+    <a href="./newsletter.html">Newsletter</a>
+    <a href="#" onclick="openMinesweeper(); return false;">Saper</a>
+    <a href="#" onclick="openHeadrace(); return false;">Headrace</a>
+    <a href="#" onclick="openArt(); return false;">ART</a>
+    <a href="mailto:pricecheckstore@gmail.com">Mail</a>
+  </div>
+  <div id="tray"><span id="clock"></span></div>
+</div>
+<!-- Newsletter overlay -->
+<div id="newsletter-overlay" class="overlay">
+  <div class="window">
+    <div class="title-bar"><span>Newsletter</span><span class="close-btn" onclick="closeNewsletter()">X</span></div>
+    <div class="content">
+      <p>Dołącz do naszego newslettera, aby być na bieżąco z nowościami!</p>
+      <button onclick="openNewsletterForm()">Otwórz formularz</button>
+    </div>
+  </div>
+</div>
+<!-- Vinted overlay -->
+<div id="vinted-overlay" class="overlay">
+  <div class="window">
+    <div class="title-bar"><span>Vinted</span><span class="close-btn" onclick="closeVinted()">X</span></div>
+    <div class="btns">
+      <button onclick="window.open('https://www.vinted.pl/member/268872337','_blank');"><span class="emoji">👕</span><span>Vinted 1</span></button>
+      <button onclick="window.open('https://www.vinted.pl/member/260388870','_blank');"><span class="emoji">👟</span><span>Vinted 2</span></button>
+      <button onclick="window.open('https://www.vinted.pl/member/190786757','_blank');"><span class="emoji">👗</span><span>Vinted 3</span></button>
+      <button onclick="window.open('https://www.vinted.pl/member/199667052','_blank');"><span class="emoji">👞</span><span>Vinted 4</span></button>
+    </div>
+  </div>
+</div>
+<!-- Minesweeper overlay -->
+<div id="minesweeper-overlay" class="overlay">
+  <div id="minesweeper-window" class="window">
+    <div class="title-bar"><span>Saper</span><span class="close-btn" onclick="closeMinesweeper()">X</span></div>
+    <div id="info-bar"><span>Pozostałe miny: <span id="mine-count"></span></span><button id="reset-button">Restart</button></div>
+    <div id="minesweeper-board"></div>
+  </div>
+</div>
+<!-- Headrace overlay -->
+<div id="headrace-overlay" class="overlay">
+  <div class="window">
+    <div class="title-bar"><span>Headrace</span><span class="close-btn" onclick="closeHeadrace()">X</span></div>
+    <div class="content"><p id="headrace-countdown" style="font-size:14px; text-align:center;"></p></div>
+  </div>
+</div>
+<!-- ART overlay -->
+<div id="art-overlay" class="overlay">
+  <div class="window" style="width:400px;">
+    <div class="title-bar"><span>ART</span><span class="close-btn" onclick="closeArt()">X</span></div>
+    <div class="content">
+      <div style="display:flex; justify-content:space-between;">
+        <div><h3 style="margin:0;">Na sprzedaż</h3><button id="add-sale-btn">Dodaj</button></div>
+        <div><h3 style="margin:0;">Sprzedane</h3><button id="add-sold-btn">Dodaj</button></div>
+      </div>
+      <div style="display:flex; gap:20px;">
+        <div id="gallery-sale" class="gallery" style="flex:1; min-height:120px;"></div>
+        <div id="gallery-sold" class="gallery" style="flex:1; min-height:120px;"></div>
+      </div>
+      <input type="file" id="art-upload" accept="image/*" style="display:none;">
+    </div>
+  </div>
+</div>
+<script>
+// Web audio beep
+let audioCtx;
+function playBeep() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  const oscillator = audioCtx.createOscillator();
+  const gainNode = audioCtx.createGain();
+  oscillator.type = 'square';
+  oscillator.frequency.setValueAtTime(880, audioCtx.currentTime);
+  oscillator.connect(gainNode);
+  gainNode.connect(audioCtx.destination);
+  oscillator.start();
+  oscillator.stop(audioCtx.currentTime + 0.1);
+}
+// Start menu toggle
+const startBtn = document.getElementById('start-button');
+const startMenu = document.getElementById('start-menu');
+startBtn.addEventListener('click', function(e) {
+  const isOpen = startMenu.style.display === 'block';
+  startMenu.style.display = isOpen ? 'none' : 'block';
+  if (!isOpen) playBeep();
+  e.stopPropagation();
+});
+document.addEventListener('click', function(e) {
+  if (!startBtn.contains(e.target) && !startMenu.contains(e.target)) {
+    startMenu.style.display = 'none';
+  }
+});
+// Clock
+function updateClock() {
+  const now = new Date();
+  const h = String(now.getHours()).padStart(2, '0');
+  const m = String(now.getMinutes()).padStart(2, '0');
+  document.getElementById('clock').textContent = h + ':' + m;
+}
+updateClock();
+setInterval(updateClock, 1000);
+// Newsletter functions
+function closeNewsletter() { document.getElementById('newsletter-overlay').style.display = 'none'; }
+function openNewsletterForm() { window.open('https://forms.gle/Dagk6zgtqzE8rvL5A','_blank'); closeNewsletter(); }
+window.addEventListener('load', function(){ document.getElementById('newsletter-overlay').style.display = 'flex'; });
+// Overlay controls
+function openVinted() { document.getElementById('vinted-overlay').style.display = 'flex'; playBeep(); }
+function closeVinted() { document.getElementById('vinted-overlay').style.display = 'none'; }
+function openMinesweeper() { document.getElementById('minesweeper-overlay').style.display = 'flex'; playBeep(); msFlags=msMines; document.getElementById('mine-count').textContent=msFlags; firstClickMs=true; createMsBoard(); renderMsBoard(); }
+function closeMinesweeper() { document.getElementById('minesweeper-overlay').style.display = 'none'; }
+function openHeadrace() { document.getElementById('headrace-overlay').style.display = 'flex'; playBeep(); startHeadraceCountdown(); }
+function closeHeadrace() { document.getElementById('headrace-overlay').style.display = 'none'; if (headraceInterval) { clearInterval(headraceInterval); headraceInterval = null; } }
+function openArt() { document.getElementById('art-overlay').style.display = 'flex'; playBeep(); }
+function closeArt() { document.getElementById('art-overlay').style.display = 'none'; }
+// Minesweeper code
+let msRows=9, msCols=9, msMines=10; let msBoard=[], msFlags=msMines, firstClickMs=true;
+function createMsBoard(){ msBoard=[]; for(let r=0;r<msRows;r++){ const row=[]; for(let c=0;c<msCols;c++){ row.push({mine:false, revealed:false, flagged:false, count:0}); } msBoard.push(row);} }
+function plantMines(skipR,skipC){ let placed=0; while(placed<msMines){ const r=Math.floor(Math.random()*msRows), c=Math.floor(Math.random()*msCols); if(!msBoard[r][c].mine && !(r===skipR && c===skipC)){ msBoard[r][c].mine=true; placed++; } } for(let r=0;r<msRows;r++){ for(let c=0;c<msCols;c++){ let cnt=0; for(let dr=-1; dr<=1; dr++){ for(let dc=-1; dc<=1; dc++){ if(dr===0 && dc===0) continue; const nr=r+dr, nc=c+dc; if(nr>=0&&nr<msRows&&nc>=0&&nc<msCols&&msBoard[nr][nc].mine) cnt++; } } msBoard[r][c].count=cnt; } } }
+function renderMsBoard(){ const board=document.getElementById('minesweeper-board'); board.innerHTML=''; for(let r=0;r<msRows;r++){ for(let c=0;c<msCols;c++){ const div=document.createElement('div'); div.className='cell'; div.dataset.row=r; div.dataset.col=c; div.oncontextmenu=(e)=>e.preventDefault(); div.addEventListener('mousedown', function(e){ const row=parseInt(this.dataset.row); const col=parseInt(this.dataset.col); if(e.button===0) revealMsCell(row,col); else if(e.button===2) flagMsCell(row,col); }); board.appendChild(div);} } }
+function flagMsCell(r,c){ const cell=msBoard[r][c]; if(cell.revealed) return; cell.flagged=!cell.flagged; const div=document.querySelector(`.cell[data-row='${r}'][data-col='${c}']`); div.textContent=cell.flagged?'🚩':''; msFlags+=cell.flagged?-1:1; document.getElementById('mine-count').textContent=msFlags; }
+function revealMsCell(r,c){ const cell=msBoard[r][c]; if(cell.revealed||cell.flagged) return; if(firstClickMs){ plantMines(r,c); firstClickMs=false; } cell.revealed=true; const div=document.querySelector(`.cell[data-row='${r}'][data-col='${c}']`); div.classList.add('revealed'); if(cell.mine){ div.textContent='💣'; setTimeout(()=>{ alert('Przegrałeś!'); closeMinesweeper(); },200); return;} if(cell.count>0){ div.textContent=cell.count; } else { for(let dr=-1; dr<=1; dr++){ for(let dc=-1; dc<=1; dc++){ const nr=r+dr, nc=c+dc; if(nr>=0&&nr<msRows&&nc>=0&&nc<msCols) revealMsCell(nr,nc); } } } checkMsWin(); }
+function checkMsWin(){ for(let r=0;r<msRows;r++){ for(let c=0;c<msCols;c++){ const cell=msBoard[r][c]; if(!cell.mine && !cell.revealed) return; } } setTimeout(()=>{ alert('Gratulacje! Wygrałeś!'); closeMinesweeper(); },100); }
+document.getElementById('reset-button').addEventListener('click', openMinesweeper);
+// Headrace countdown
+let headraceInterval;
+function startHeadraceCountdown(){ const target=new Date('2025-09-01T00:00:00'); const el=document.getElementById('headrace-countdown'); function update(){ const now=new Date(); const diff=target-now; if(diff<=0){ el.textContent='Nadszedł 1 września 2025!'; if(headraceInterval){ clearInterval(headraceInterval); headraceInterval=null; } return; } let secs=Math.floor(diff/1000); const days=Math.floor(secs/(24*3600)); secs-=days*24*3600; const hrs=Math.floor(secs/3600); secs-=hrs*3600; const mins=Math.floor(secs/60); secs-=mins*60; el.textContent=`${days}d ${hrs}h ${mins}m ${secs}s do 1 września 2025`; } update(); if(headraceInterval) clearInterval(headraceInterval); headraceInterval=setInterval(update,1000); }
+// ART gallery logic
+let currentArtCategory='sale'; const artUpload=document.getElementById('art-upload'); document.getElementById('add-sale-btn').addEventListener('click',function(){ currentArtCategory='sale'; artUpload.click(); }); document.getElementById('add-sold-btn').addEventListener('click',function(){ currentArtCategory='sold'; artUpload.click(); }); artUpload.addEventListener('change', function(e){ const files=e.target.files; Array.from(files).forEach(file=>{ const reader=new FileReader(); reader.onload=function(ev){ addArtItem(ev.target.result, currentArtCategory); }; reader.readAsDataURL(file); }); this.value=''; }); function addArtItem(src, category){ const item=document.createElement('div'); item.className='art-item'; const img=document.createElement('img'); img.src=src; item.appendChild(img); if(category==='sale'){ const btn=document.createElement('button'); btn.textContent='Sprzedano'; btn.addEventListener('click', function(){ document.getElementById('gallery-sold').appendChild(item); btn.remove(); }); item.appendChild(btn); document.getElementById('gallery-sale').appendChild(item); } else { document.getElementById('gallery-sold').appendChild(item); } }
+// Dragging and clicking icons
+(function(){ const icons=document.querySelectorAll('#desktop .icon'); icons.forEach(icon=>{ let startX,startY,offX,offY,moved; function onMouseMove(ev){ icon.style.left=(ev.clientX-offX)+'px'; icon.style.top=(ev.clientY-offY)+'px'; moved=true; }
+      function onMouseUp(ev){ document.removeEventListener('mousemove',onMouseMove); document.removeEventListener('mouseup',onMouseUp); const dx=Math.abs(ev.clientX-startX); const dy=Math.abs(ev.clientY-startY); if(!moved|| (dx<4 && dy<4)){ const msg=icon.dataset.message; const action=icon.dataset.action; const href=icon.dataset.href; if(msg){ alert(msg); } else if(action){ if(action==='openVinted') openVinted(); else if(action==='openMinesweeper') openMinesweeper(); else if(action==='openHeadrace') openHeadrace(); else if(action==='openArt') openArt(); } else if(href){ if(href.startsWith('./')||href.endsWith('.html')){ window.location.href=href; } else { window.open(href,'_blank'); } } } }
+      icon.addEventListener('mousedown',function(e){ if(e.button!==0) return; e.preventDefault(); startX=e.clientX; startY=e.clientY; offX=e.clientX-icon.offsetLeft; offY=e.clientY-icon.offsetTop; moved=false; document.addEventListener('mousemove',onMouseMove); document.addEventListener('mouseup',onMouseUp); }); }); })();
+</script>
+</body>
+</html>

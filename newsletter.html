@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<title>Newsletter</title>
+<style>
+body {
+  margin: 0;
+  padding: 0;
+  font-family: Tahoma, Verdana, sans-serif;
+  background: url('https://upload.wikimedia.org/wikipedia/commons/thumb/d/da/Vectorized_Bliss.svg/1280px-Vectorized_Bliss.svg.png') no-repeat center/cover;
+  height: 100vh;
+  position: relative;
+}
+.window {
+  position: absolute;
+  top: 20%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 400px;
+  background: #ececec;
+  border: 2px solid #a0a0a0;
+  box-shadow: 0 0 8px rgba(0,0,0,0.4);
+  border-radius: 4px;
+}
+.window .title-bar {
+  background: linear-gradient(to right, #0a2c67, #205da0);
+  color: white;
+  padding: 6px 10px;
+  font-weight: bold;
+}
+.window .content {
+  padding: 20px;
+}
+.window .content button {
+  padding: 8px 14px;
+  background: #3bb44a;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.window .content button:hover {
+  background: #2e8e39;
+}
+</style>
+</head>
+<body>
+<div class="window">
+  <div class="title-bar">Newsletter</div>
+  <div class="content">
+    <p>Zapisz się do naszego newslettera, korzystając z formularza:</p>
+    <button id="open-form-button">Otwórz formularz</button>
+  </div>
+</div>
+<script>
+document.getElementById('open-form-button').addEventListener('click', function() {
+  window.open('https://forms.gle/Dagk6zgtqzE8rvL5A', '_blank');
+});
+</script>
+</body>
+</html>
