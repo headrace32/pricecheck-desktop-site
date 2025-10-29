@@ -1,7 +1,10 @@
+
 <!DOCTYPE html>
 <html lang="pl">
 <head>
 <meta charset="UTF-8">
+    <!-- Allow proper scaling on mobile devices -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Windows Desktop</title>
 <style>
   body { margin:0; padding:0; height:100vh; overflow:hidden; font-family:Tahoma, Arial, sans-serif; }
@@ -33,13 +36,23 @@
     z-index:1000;
   }
   #start-button {
-    background:#0178D4;
-    color:#fff;
-    padding:4px 8px;
+    /* Windows 98 style start button */
+    background: linear-gradient(to bottom, #c0c0c0, #e0e0e0);
+    color:#000;
+    padding:2px 10px;
     margin:0 2px;
-    border-radius:2px;
+    border:2px solid #ffffff;
+    border-bottom-color:#404040;
+    border-right-color:#404040;
     cursor:pointer;
     user-select:none;
+    font-weight:bold;
+    display:flex;
+    align-items:center;
+    gap:4px;
+  }
+  #start-button::before {
+    content:'🪟';
   }
   #start-menu {
     display:none;
@@ -47,18 +60,27 @@
     position:fixed;
     bottom:30px;
     left:0;
-    width:180px;
-    background:#F5F5F5;
-    border:1px solid #666;
+    width:200px;
+    background: linear-gradient(to bottom, #e0e0e0, #d0d0d0);
+    border:2px solid #404040;
+    border-top-color:#fff;
+    border-left-color:#fff;
     z-index:2000;
+    padding-top:4px;
   }
   #start-menu a {
-    padding:6px 12px;
+    display:flex;
+    align-items:center;
+    gap:6px;
+    padding:4px 12px;
     font-size:14px;
     color:#000;
     text-decoration:none;
   }
-  #start-menu a:hover { background:#DDE8F5; }
+  #start-menu a:hover {
+    background:#0a246a;
+    color:#fff;
+  }
   #tray { margin-left:auto; padding-right:10px; font-size:13px; font-family:'Courier New', monospace; }
   .overlay {
     position:fixed;
@@ -74,6 +96,36 @@
     border:2px solid #404040;
     width:340px;
     box-shadow:4px 4px 10px rgba(0,0,0,0.5);
+  }
+  /* Streaming style advertisement bar */
+  #ad-bar {
+    position:fixed;
+    left:0;
+    right:0;
+    bottom:30px; /* place above the taskbar */
+    height:24px;
+    background:#FFF8DC;
+    color:#000;
+    overflow:hidden;
+    border-top:1px solid #404040;
+    border-bottom:1px solid #fff;
+    display:flex;
+    align-items:center;
+    cursor:pointer;
+    z-index:1500;
+    font-size:14px;
+  }
+  /* Container for scrolling text */
+  #ad-bar .ad-text {
+    display:inline-block;
+    white-space:nowrap;
+    padding-left:100%;
+    animation: marquee 15s linear infinite;
+    font-weight:bold;
+  }
+  @keyframes marquee {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-100%); }
   }
   .window .title-bar {
     background:#000080;
@@ -98,6 +150,26 @@
     user-select:none;
   }
   .cell.revealed { background:#B8CFE5; border-color:#7A9ACF; }
+  /* Toast notifications */
+  #toast-container { position:fixed; bottom:50px; right:10px; z-index:4000; }
+  .toast {
+    background:#FFF8DC;
+    border:1px solid #404040;
+    padding:8px 12px;
+    margin-top:6px;
+    font-size:13px;
+    box-shadow:2px 2px 5px rgba(0,0,0,0.4);
+  }
+  /* Small label in the bottom right corner for author attribution */
+  #copyright-label {
+    position:fixed;
+    right:10px;
+    bottom:60px; /* leave room for the ad bar and taskbar */
+    font-size:12px;
+    color:#fff;
+    text-shadow:1px 1px 2px #000;
+    z-index:2500;
+  }
   /* Vinted overlay buttons */
   #vinted-overlay .btns { display:grid; grid-template-columns:repeat(2, 1fr); gap:10px; padding:12px; }
   #vinted-overlay .btns button { display:flex; flex-direction:column; align-items:center; justify-content:center; border:1px solid #404040; background:#E0E0E0; padding:8px; font-size:12px; cursor:pointer; }
@@ -115,100 +187,283 @@
   <div class="icon" style="top:20px; left:20px;" data-message="Mój komputer jest obecnie niedostępny.">
     <div class="emoji">🖥️</div><span class="label">Mój komputer</span>
   </div>
-  <div class="icon" style="top:20px; left:100px;" data-message="Brak dokumentów.">
+  <!-- Documents icon – opens a readme file in a retro window. -->
+  <div id="documents-icon" class="icon" style="top:20px; left:100px;" data-action="openDocuments">
     <div class="emoji">📁</div><span class="label">Dokumenty</span>
   </div>
   <div class="icon" style="top:20px; left:180px;" data-message="Kosz jest pusty.">
     <div class="emoji">🗑️</div><span class="label">Kosz</span>
   </div>
   <!-- Profiles -->
-  <div class="icon" style="top:20px; left:260px;" data-href="https://www.instagram.com/pricecheck.store/">
+  <!-- Instagram icon now opens the Instagram selector overlay instead of linking directly -->
+  <div class="icon" style="top:100px; left:180px;" data-action="openInstagram">
     <div class="emoji">📸</div><span class="label">Instagram</span>
   </div>
-  <div class="icon" style="top:20px; left:340px;" data-href="https://www.ebay.com/usr/pricecheck.store">
+  <div class="icon" style="top:180px; left:260px;" data-href="https://www.ebay.com/usr/pricecheck.store">
     <div class="emoji">🛍️</div><span class="label">eBay</span>
   </div>
-  <div class="icon" style="top:110px; left:20px;" data-href="https://www.grailed.com/pricecheckstore">
+  <div class="icon" style="top:100px; left:340px;" data-href="https://www.grailed.com/pricecheckstore">
     <div class="emoji"><img src="grailed-logo.png" alt="Grailed"></div><span class="label">Grailed</span>
   </div>
   <!-- Vinted folder -->
-  <div id="vinted-icon" class="icon" style="top:110px; left:100px;" data-action="openVinted">
+  <div id="vinted-icon" class="icon" style="top:100px; left:260px;" data-action="openVinted">
     <div class="emoji"><img src="vinted.png" alt="Vinted" style="width:40px; height:40px;"></div><span class="label">Vinted</span>
   </div>
   <!-- Other icons -->
-  <div class="icon" style="top:200px; left:20px;" data-href="./newsletter.html">
+  <div id="newsletter-icon" class="icon" style="top:180px; left:20px;" data-action="openNewsletter">
     <div class="emoji">📬</div><span class="label">Newsletter</span>
   </div>
-  <div id="saper-icon" class="icon" style="top:200px; left:100px;" data-action="openMinesweeper">
+  
+  
+  <div id="saper-icon" class="icon" style="top:260px; left:180px;" data-action="openMinesweeper">
     <div class="emoji">💣</div><span class="label">Saper</span>
   </div>
-  <div id="headrace-icon" class="icon" style="top:200px; left:180px;" data-action="openHeadrace">
-    <div class="emoji"><img src="headrace-icon.png" alt="Headrace" style="width:40px;height:40px;"></div><span class="label">Headrace</span>
+  <!-- Removed the Headrace icon -->
+  <div id="art-icon" class="icon" style="top:260px; left:20px;" data-action="openArt">
+    <div class="emoji"><img src="art-icon.png" alt="ART" style="width:40px;height:40px;"></div><span class="label">ART trade simulation</span>
   </div>
-  <div id="art-icon" class="icon" style="top:280px; left:20px;" data-action="openArt">
-    <div class="emoji"><img src="art-icon.png" alt="ART" style="width:40px;height:40px;"></div><span class="label">ART</span>
-  </div>
-  <div id="mail-icon" class="icon" style="top:280px; left:100px;" data-href="mailto:pricecheckstore@gmail.com">
+  <div id="mail-icon" class="icon" style="top:260px; left:100px;" data-href="mailto:priceheckstore@gmail.com">
     <div class="emoji">📧</div><span class="label">Mail</span>
   </div>
+
+  <!-- Apokryf icon – locked secret file.  Clicking will prompt for a password. -->
+  <div id="apocryph-icon" class="icon" style="top:180px; left:100px;" data-action="openApocryph">
+    <div class="emoji">🔒</div><span class="label">APOKRYF</span>
+  </div>
+
+  <!-- Tooth icon now links directly to the @usmiehy Instagram account instead of opening the overlay -->
+  <div id="usmiehy-icon" class="icon" style="top:180px; left:180px;" data-href="https://www.instagram.com/usmiehy/">
+    <div class="emoji">🦷</div><span class="label">USMIEHY</span>
+  </div>
+  <!-- New custom icons (placeholders) linking to customizable pages.  Each icon
+       can be customised by replacing the PNG file in img/ and updating the
+       corresponding HTML page. -->
+  <div id="custom1-icon" class="icon" style="top:420px; left:20px;" data-href="./custom1.html">
+    <div class="emoji"><img src="img/custom1.png" alt="Custom 1" style="width:40px; height:40px;"></div><span class="label">Custom 1</span>
+  </div>
+  <div id="custom2-icon" class="icon" style="top:420px; left:100px;" data-href="./custom2.html">
+    <div class="emoji"><img src="img/custom2.png" alt="Custom 2" style="width:40px; height:40px;"></div><span class="label">Custom 2</span>
+  </div>
+  <div id="custom3-icon" class="icon" style="top:420px; left:180px;" data-href="./custom3.html">
+    <div class="emoji"><img src="img/custom3.png" alt="Custom 3" style="width:40px; height:40px;"></div><span class="label">Custom 3</span>
+  </div>
+  <div id="custom4-icon" class="icon" style="top:420px; left:260px;" data-href="./custom4.html">
+    <div class="emoji"><img src="img/custom4.png" alt="Custom 4" style="width:40px; height:40px;"></div><span class="label">Custom 4</span>
+  </div>
+  <div id="custom5-icon" class="icon" style="top:420px; left:340px;" data-href="./custom5.html">
+    <div class="emoji"><img src="img/custom5.png" alt="Custom 5" style="width:40px; height:40px;"></div><span class="label">Custom 5</span>
+  </div>
+
+  <!-- Additional desktop tools created for extra functionality -->
+  <!-- Text editor icon: opens a simple notepad overlay that allows you to type
+       and download your notes. You can adjust the top/left values below to
+       rearrange where the icon appears on the desktop. -->
+  <div id="editor-icon" class="icon" style="top:260px; left:260px;" data-action="openEditor">
+    <div class="emoji">📝</div><span class="label">Edytor</span>
+  </div>
+
+  <!-- Music player icon: launches a basic MP3 player overlay with controls.
+       The supplied frog2.mp3 serves as a sample track; you can replace the
+       source file or add more tracks in the script below. -->
+  <div id="player-icon" class="icon" style="top:340px; left:20px;" data-action="openPlayer">
+    <div class="emoji">🎵</div><span class="label">Odtwarzacz</span>
+  </div>
+
+  <!-- Notifications icon: clicking triggers a sample toast notification.  The
+       notification system can also be used programmatically for timed
+       messages. -->
+  <div id="notify-icon" class="icon" style="top:340px; left:100px;" data-action="showNotification">
+    <div class="emoji">🔔</div><span class="label">Powiadom.</span>
+  </div>
+
+  <!-- Wallpaper chooser icon: opens an overlay with different background
+       options.  Selecting a wallpaper immediately updates the desktop and
+       persists the choice using localStorage. -->
+  <div id="wallpaper-icon" class="icon" style="top:340px; left:180px;" data-action="openWallpaper">
+    <div class="emoji">🖼️</div><span class="label">Tapety</span>
+  </div>
+
+  <!-- Magazine icon: clicking this will download the latest issue of the magazine.
+       Replace magazine01.pdf in the project root to update the issue.  You can
+       also change the icon graphic by replacing img/magazine.png. -->
+  <div id="magazine-icon" class="icon" style="top:340px; left:260px;" data-href="magazine01.pdf">
+    <div class="emoji"><img src="img/magazine.png" alt="Magazyn" style="width:40px; height:40px;"></div>
+    <span class="label">Magazyn #01</span>
+  </div>
+
+  <!-- Chat icon: opens an online chat room using tlk.io.  Visitors can
+       communicate in real time through the embedded chat widget.  The chat
+       uses the public channel "siteplacechat" on tlk.io.  If you'd like to
+       change the room name, adjust the URL in the chat overlay iframe.
+       Note: for full real-time chat functionality across users, a hosted
+       service like tlk.io is required; this embed is a convenient way to
+       add chat to a static site. -->
+  <div id="chat-icon" class="icon" style="top:500px; left:20px;" data-action="openChat">
+    <div class="emoji">💬</div><span class="label">Czat</span>
+  </div>
+</div>
+
+<!-- Author attribution: a small label in the bottom right corner of the screen.
+     You can customise the text to credit yourself or your team.  It is positioned
+     above the ad bar and taskbar via CSS (#copyright-label in the style section). -->
+<div id="copyright-label">
+  ZAKODOWANE PRZEZ KAMIL RÓWNY ® All copyright reserved
 </div>
 <!-- Taskbar -->
+<!-- Advertisement bar -->
+<!--
+  The ad bar uses a scrolling marquee effect to mimic
+  streaming overlays. Clicking anywhere on the bar opens
+  the advertised page in a new tab. Replace the text
+  and URL in the script below to customise your ad.
+-->
+<div id="ad-bar">
+  <span class="ad-text">Reklama: Kliknij tutaj, aby odwiedzić reklamowaną stronę!</span>
+</div>
 <div id="taskbar">
   <div id="start-button">Start</div>
   <div id="start-menu">
-    <a href="https://www.instagram.com/pricecheck.store/" target="_blank">Instagram</a>
+    <a href="#" onclick="openInstagram(); return false;">Instagram</a>
     <a href="https://www.ebay.com/usr/pricecheck.store" target="_blank">eBay</a>
     <a href="https://www.grailed.com/pricecheckstore" target="_blank">Grailed</a>
     <a href="#" onclick="openVinted(); return false;">Vinted</a>
-    <a href="./newsletter.html">Newsletter</a>
+    <a href="#" onclick="openNewsletter(); return false;">Newsletter</a>
     <a href="#" onclick="openMinesweeper(); return false;">Saper</a>
-    <a href="#" onclick="openHeadrace(); return false;">Headrace</a>
+    <!-- Removed the Headrace entry from the start menu -->
     <a href="#" onclick="openArt(); return false;">ART</a>
-    <a href="mailto:pricecheckstore@gmail.com">Mail</a>
+    <a href="mailto:priceheckstore@gmail.com">Mail</a>
   </div>
-  <div id="tray"><span id="clock"></span></div>
+  <div id="tray">
+    <span id="clock"></span>
+    <!-- Volume slider: adjust the MP3 player volume without opening
+         the player window.  This control affects the #mp3-player element
+         directly. -->
+    <input id="volume-slider" type="range" min="0" max="1" step="0.01" value="1" style="margin-left:8px;">
+  </div>
 </div>
 <!-- Newsletter overlay -->
 <div id="newsletter-overlay" class="overlay">
-  <div class="window">
-    <div class="title-bar"><span>Newsletter</span><span class="close-btn" onclick="closeNewsletter()">X</span></div>
+  <div class="window" style="width:360px;">
+    <div class="title-bar">
+      <span>Newsletter</span>
+      <span class="close-btn" onclick="closeNewsletter()">X</span>
+    </div>
     <div class="content">
-      <p>Dołącz do naszego newslettera, aby być na bieżąco z nowościami!</p>
-      <button onclick="openNewsletterForm()">Otwórz formularz</button>
+      <p style="margin-top:0">Dołącz do newslettera, żeby wpadały nowości i dropy.</p>
+
+      <!-- BREVO EMBED START -->
+      <!-- 1) Wklej poniżej "Embed form" z Brevo -->
+      <div id="brevo-form">
+        <!-- PASTE YOUR BREVO EMBED HERE -->
+      </div>
+
+      <!-- 2) ALBO użyj fallbacku (podmień endpoint + listę) -->
+      <form id="brevo-fallback" action="https://YOUR-BREVO-FORM-ENDPOINT" method="POST" style="margin-top:8px; background:#BDBDBD; padding:8px; border:1px solid #404040;">
+        <input type="hidden" name="listid" value="YOUR_LIST_ID">
+        <label style="display:block; font-size:12px; margin-bottom:4px;">E-mail:</label>
+        <input type="email" name="EMAIL" placeholder="twój@email" required
+               style="width:100%; padding:6px; border:1px solid #404040; background:#E0E0E0; font-family:Tahoma, Arial, sans-serif;">
+        <button type="submit" style="margin-top:8px; padding:6px 10px; border:1px solid #404040; background:#D0D0D0; cursor:pointer;">
+          Zapisz się
+        </button>
+      </form>
+      <!-- BREVO EMBED END -->
     </div>
   </div>
 </div>
-<!-- Vinted overlay -->
+<!-- Vinted overlay listing promotional seller accounts -->
 <div id="vinted-overlay" class="overlay">
-  <div class="window">
-    <div class="title-bar"><span>Vinted</span><span class="close-btn" onclick="closeVinted()">X</span></div>
-    <div class="btns">
-      <button onclick="window.open('https://www.vinted.pl/member/268872337','_blank');"><span class="emoji">👕</span><span>Vinted 1</span></button>
-      <button onclick="window.open('https://www.vinted.pl/member/260388870','_blank');"><span class="emoji">👟</span><span>Vinted 2</span></button>
-      <button onclick="window.open('https://www.vinted.pl/member/190786757','_blank');"><span class="emoji">👗</span><span>Vinted 3</span></button>
-      <button onclick="window.open('https://www.vinted.pl/member/199667052','_blank');"><span class="emoji">👞</span><span>Vinted 4</span></button>
+  <div class="window" style="width:360px;">
+    <div class="title-bar">
+      <span>Promowani sprzedawcy Vinted</span>
+      <span class="close-btn" onclick="closeVinted()">X</span>
+    </div>
+    <div class="content">
+      <p style="margin-top:0">Wybierz sprzedawcę:</p>
+      <div class="btns">
+        <button onclick="window.open('https://www.vinted.pl/uzytkownik/konto1', '_blank');">
+          <span>Konto&nbsp;1</span>
+        </button>
+        <button onclick="window.open('https://www.vinted.pl/uzytkownik/konto2', '_blank');">
+          <span>Konto&nbsp;2</span>
+        </button>
+        <button onclick="window.open('https://www.vinted.pl/uzytkownik/konto3', '_blank');">
+          <span>Konto&nbsp;3</span>
+        </button>
+        <button onclick="window.open('https://www.vinted.pl/uzytkownik/konto4', '_blank');">
+          <span>Konto&nbsp;4</span>
+        </button>
+      </div>
     </div>
   </div>
 </div>
+
+<!-- Instagram overlay listing promotional accounts -->
+<div id="instagram-overlay" class="overlay">
+  <div class="window" style="width:360px;">
+    <div class="title-bar">
+      <span>Promowane profile Instagram</span>
+      <span class="close-btn" onclick="closeInstagram()">X</span>
+    </div>
+    <div class="content">
+      <p style="margin-top:0">Wybierz profil:</p>
+      <div class="btns">
+        <!-- Each button opens the corresponding Instagram in a new tab.  To customise
+             the list, change the URL and label below. -->
+        <button onclick="window.open('https://www.instagram.com/usmiehy/', '_blank'); return false;">
+          <span>@usmiehy</span>
+        </button>
+        <button onclick="window.open('https://www.instagram.com/pricecheck.store/', '_blank'); return false;">
+          <span>@pricecheck.store</span>
+        </button>
+        <button onclick="window.open('https://www.instagram.com/headrace32/', '_blank'); return false;">
+          <span>@headrace32</span>
+        </button>
+        <button onclick="window.open('https://www.instagram.com/ravishing.culture/', '_blank'); return false;">
+          <span>@ravishing.culture</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- Minesweeper overlay -->
 <div id="minesweeper-overlay" class="overlay">
   <div id="minesweeper-window" class="window">
     <div class="title-bar"><span>Saper</span><span class="close-btn" onclick="closeMinesweeper()">X</span></div>
-    <div id="info-bar"><span>Pozostałe miny: <span id="mine-count"></span></span><button id="reset-button">Restart</button></div>
+    <div id="info-bar">
+      <span>Pozostałe miny: <span id="mine-count"></span></span>
+      <span style="margin-left:10px;">Wygrane: <span id="ms-wins"></span></span>
+      <span style="margin-left:10px;">Przegrane: <span id="ms-losses"></span></span>
+      <button id="reset-button" style="margin-left:auto;">Restart</button>
+    </div>
     <div id="minesweeper-board"></div>
   </div>
 </div>
-<!-- Headrace overlay -->
-<div id="headrace-overlay" class="overlay">
-  <div class="window">
-    <div class="title-bar"><span>Headrace</span><span class="close-btn" onclick="closeHeadrace()">X</span></div>
-    <div class="content"><p id="headrace-countdown" style="font-size:14px; text-align:center;"></p></div>
+<!-- Promotional Vinted overlay shown on page load -->
+<div id="promo-overlay" class="overlay">
+  <div class="window" style="width:360px;">
+    <div class="title-bar">
+      <span>Promocja</span>
+      <span class="close-btn" onclick="document.getElementById('promo-overlay').style.display = 'none';">X</span>
+    </div>
+    <div class="content">
+      <p style="margin-top:0">Sprawdź naszych promowanych sprzedawców na Vinted!</p>
+      <div style="display:flex; justify-content:flex-end; gap:8px;">
+        <button onclick="openVinted(); document.getElementById('promo-overlay').style.display = 'none';" style="padding:6px 10px; border:1px solid #404040; background:#D0D0D0; cursor:pointer;">
+          Zobacz
+        </button>
+        <button onclick="document.getElementById('promo-overlay').style.display = 'none';" style="padding:6px 10px; border:1px solid #404040; background:#D0D0D0; cursor:pointer;">
+          Zamknij
+        </button>
+      </div>
+    </div>
   </div>
 </div>
 <!-- ART overlay -->
 <div id="art-overlay" class="overlay">
   <div class="window" style="width:400px;">
-    <div class="title-bar"><span>ART</span><span class="close-btn" onclick="closeArt()">X</span></div>
+    <div class="title-bar"><span>ART trade simulation</span><span class="close-btn" onclick="closeArt()">X</span></div>
     <div class="content">
       <div style="display:flex; justify-content:space-between;">
         <div><h3 style="margin:0;">Na sprzedaż</h3><button id="add-sale-btn">Dodaj</button></div>
@@ -222,19 +477,179 @@
     </div>
   </div>
 </div>
+
+<!-- Timed browser overlay.  This overlay mimics an old browser window and
+     displays an Instagram page after a delay.  By default it loads
+     https://www.instagram.com/usmiehy/, but you can change the URL by
+     editing the src attribute of the iframe below. -->
+<div id="browser-overlay" class="overlay">
+  <div class="window" style="width:480px;">
+    <div class="title-bar">
+      <span>Stara przeglądarka</span>
+      <span class="close-btn" onclick="closeBrowser()">X</span>
+    </div>
+    <div class="content">
+      <!-- Replace the URL in the iframe src with another Instagram profile to change
+           the displayed account. -->
+      <iframe id="browser-frame" src="https://siteplaceconcept.netlify.app/" style="width:100%; height:400px; border:none;"></iframe>
+    </div>
+  </div>
+</div>
+
+<!-- Business promotion overlay shown after 30 seconds -->
+<div id="business-overlay" class="overlay">
+  <div class="window" style="width:380px;">
+    <div class="title-bar">
+      <span>Promuj się</span>
+      <span class="close-btn" onclick="closeBusiness()">X</span>
+    </div>
+    <div class="content" style="text-align:center;">
+      <!-- Blinking gif encouraging visitors to promote their business -->
+      <img src="img/ad_popup.gif" alt="Zareklamuj swój biznes" style="width:100%; height:auto; margin-bottom:10px;">
+      <p style="margin:0 0 10px;">Zareklamuj swój biznes!</p>
+      <div style="display:flex; justify-content:center; gap:10px;">
+        <button onclick="window.open('https://www.instagram.com/siteplace/', '_blank');" style="padding:6px 10px; border:1px solid #404040; background:#D0D0D0; cursor:pointer;">
+          Instagram @siteplace
+        </button>
+        <button onclick="window.location.href='mailto:priceheckstore@gmail.com';" style="padding:6px 10px; border:1px solid #404040; background:#D0D0D0; cursor:pointer;">
+          Napisz maila
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Documents overlay displaying the contents of readme.txt -->
+<div id="documents-overlay" class="overlay">
+  <div class="window" style="width:380px;">
+    <div class="title-bar">
+      <span>Dokumenty</span>
+      <span class="close-btn" onclick="closeDocuments()">X</span>
+    </div>
+    <div class="content" style="max-height:300px; overflow:auto; background:#FFFFFF; padding:8px; font-family:monospace;">
+      <pre style="white-space:pre-wrap; margin:0;">
+To jest przykładowy plik readme. Możesz tutaj umieścić swoje notatki czy instrukcje dla użytkowników tej strony.
+      </pre>
+    </div>
+  </div>
+</div>
+
+<!-- Apocryph overlay displayed after entering the correct password -->
+<div id="apocryph-overlay" class="overlay">
+  <div class="window" style="width:380px;">
+    <div class="title-bar">
+      <span>APOKRYF</span>
+      <span class="close-btn" onclick="closeApocryph()">X</span>
+    </div>
+    <div class="content" style="max-height:300px; overflow:auto; background:#FFFFFF; padding:8px; font-family:monospace;">
+      <pre style="white-space:pre-wrap; margin:0;">
+Tajemne hasło zostało wpisane poprawnie! Oto twój apokryf — możesz tu zamieścić dowolną treść, np. ukryte informacje o projekcie.
+      </pre>
+    </div>
+  </div>
+</div>
+
+<!-- Editor overlay: simple notepad that lets you write notes and download
+     them as a .txt file -->
+<div id="editor-overlay" class="overlay">
+  <div class="window" style="width:400px;">
+    <div class="title-bar">
+      <span>Edytor tekstu</span>
+      <span class="close-btn" onclick="closeEditor()">X</span>
+    </div>
+    <div class="content">
+      <textarea id="editor-textarea" style="width:100%; height:200px; resize:none; font-family:monospace; background:#FFFFFF; border:1px solid #404040;"></textarea>
+      <div style="margin-top:8px; display:flex; justify-content:flex-end; gap:8px;">
+        <button onclick="saveDocument()" style="padding:6px 10px; border:1px solid #404040; background:#D0D0D0; cursor:pointer;">Zapisz</button>
+        <button onclick="closeEditor()" style="padding:6px 10px; border:1px solid #404040; background:#D0D0D0; cursor:pointer;">Zamknij</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Music player overlay: simple audio controls playing a sample mp3 file.  You
+     can replace the source file with your own MP3 or extend the player to
+     select from multiple tracks. -->
+<div id="player-overlay" class="overlay">
+  <div class="window" style="width:360px;">
+    <div class="title-bar">
+      <span>Odtwarzacz MP3</span>
+      <span class="close-btn" onclick="closePlayer()">X</span>
+    </div>
+    <div class="content" style="text-align:center;">
+      <!-- Audio element: default track loads frog2.mp3, but will be
+           replaced when selecting a track from the playlist below. -->
+      <audio id="mp3-player" controls style="width:100%;">
+        <source id="mp3-source" src="img/track1.mp3" type="audio/mpeg">
+        Twoja przeglądarka nie obsługuje odtwarzacza audio.
+      </audio>
+      <!-- Simple playlist: clicking a button loads the corresponding track
+           and begins playback.  Replace the file names with your own
+           tracks or duplicate as needed. -->
+      <div class="playlist" style="margin-top:8px; display:flex; gap:8px; justify-content:center; flex-wrap:wrap;">
+        <button onclick="selectTrack('img/track1.mp3')" style="padding:4px 8px; border:1px solid #404040; background:#D0D0D0; cursor:pointer;">Utwór 1</button>
+        <button onclick="selectTrack('img/track2.mp3')" style="padding:4px 8px; border:1px solid #404040; background:#D0D0D0; cursor:pointer;">Utwór 2</button>
+        <button onclick="selectTrack('img/frog2.mp3')" style="padding:4px 8px; border:1px solid #404040; background:#D0D0D0; cursor:pointer;">Utwór 3</button>
+        <button onclick="playRandom()" style="padding:4px 8px; border:1px solid #404040; background:#D0D0D0; cursor:pointer;">Losowo</button>
+      </div>
+      <!-- Canvas for audio visualisation.  This simple equaliser will animate
+           bars representing the frequency spectrum of the current track. -->
+      <canvas id="audio-visualization" width="340" height="60" style="display:block; margin:8px auto; background:#C0C0C0; border:1px solid #404040;"></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- Online chat overlay: embeds a tlk.io chat room.  You can change the
+     channel name in the iframe src to personalise your chat room.  Users
+     can interact in real time without any server-side code. -->
+<div id="chat-overlay" class="overlay">
+  <div class="window" style="width:420px;">
+    <div class="title-bar">
+      <span>Czat online</span>
+      <span class="close-btn" onclick="closeChat()">X</span>
+    </div>
+    <div class="content" style="padding:0; height:400px;">
+      <iframe src="https://tlk.io/siteplacechat" style="width:100%; height:100%; border:none;"></iframe>
+    </div>
+  </div>
+</div>
+<!-- Wallpaper selection overlay: choose between available backgrounds.  The
+     selected wallpaper is saved in localStorage so it persists across
+     sessions. -->
+<div id="wallpaper-overlay" class="overlay">
+  <div class="window" style="width:380px;">
+    <div class="title-bar">
+      <span>Wybierz tapetę</span>
+      <span class="close-btn" onclick="closeWallpaper()">X</span>
+    </div>
+    <div class="content" style="text-align:center;">
+      <p style="margin-top:0;">Kliknij na obrazek, aby ustawić tapetę.</p>
+      <div style="display:flex; justify-content:center; gap:10px; flex-wrap:wrap;">
+        <img src="old-windows-2vzmbvojwv0j5ua0.jpg" alt="Tapeta 1" style="width:100px; height:75px; cursor:pointer; border:1px solid #666;" onclick="setWallpaper('old-windows-2vzmbvojwv0j5ua0.jpg')">
+        <img src="img/bliss.png" alt="Tapeta 2" style="width:100px; height:75px; cursor:pointer; border:1px solid #666;" onclick="setWallpaper('img/bliss.png')">
+        <img src="img/wallpaper3.png" alt="Tapeta 3" style="width:100px; height:75px; cursor:pointer; border:1px solid #666;" onclick="setWallpaper('img/wallpaper3.png')">
+        <img src="img/wallpaper4.png" alt="Tapeta 4" style="width:100px; height:75px; cursor:pointer; border:1px solid #666;" onclick="setWallpaper('img/wallpaper4.png')">
+      </div>
+      <!-- Toggle for automatic wallpaper rotation.  When checked, the
+           background will cycle through available wallpapers every 40 seconds. -->
+      <div style="margin-top:10px; text-align:left; font-size:12px;">
+        <label>
+          <input type="checkbox" id="wallpaper-auto-toggle" onchange="toggleWallpaperAuto()">
+          &nbsp;Automatyczna zmiana tapety co 40&nbsp;s
+        </label>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Container for toast notifications -->
+<div id="toast-container"></div>
 <script>
 // Web audio beep
 let audioCtx;
+// Disabled beep function – this stub intentionally does nothing to avoid sound effects
 function playBeep() {
-  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  const oscillator = audioCtx.createOscillator();
-  const gainNode = audioCtx.createGain();
-  oscillator.type = 'square';
-  oscillator.frequency.setValueAtTime(880, audioCtx.currentTime);
-  oscillator.connect(gainNode);
-  gainNode.connect(audioCtx.destination);
-  oscillator.start();
-  oscillator.stop(audioCtx.currentTime + 0.1);
+  // intentionally left blank
 }
 // Start menu toggle
 const startBtn = document.getElementById('start-button');
@@ -262,34 +677,629 @@ setInterval(updateClock, 1000);
 // Newsletter functions
 function closeNewsletter() { document.getElementById('newsletter-overlay').style.display = 'none'; }
 function openNewsletterForm() { window.open('https://forms.gle/Dagk6zgtqzE8rvL5A','_blank'); closeNewsletter(); }
-window.addEventListener('load', function(){ document.getElementById('newsletter-overlay').style.display = 'flex'; });
+// Show the newsletter overlay.  This function is used by the Start menu and
+// the icon click handler.  It simply displays the newsletter window and plays
+// the notification beep.
+function openNewsletter() {
+  const nl = document.getElementById('newsletter-overlay');
+  if (nl) {
+    nl.style.display = 'flex';
+    if (typeof playBeep === 'function') playBeep();
+  }
+}
+// Show promotional overlay on page load instead of the newsletter
+// Immediately display both the newsletter and promotional overlays on page load
+(function(){
+  const newsletter = document.getElementById('newsletter-overlay');
+  if (newsletter) {
+    newsletter.style.display = 'flex';
+  }
+  const promo = document.getElementById('promo-overlay');
+  if (promo) {
+    promo.style.display = 'flex';
+    if (typeof playBeep === 'function') playBeep();
+  }
+})();
 // Overlay controls
-function openVinted() { document.getElementById('vinted-overlay').style.display = 'flex'; playBeep(); }
-function closeVinted() { document.getElementById('vinted-overlay').style.display = 'none'; }
+// Show and hide the Vinted overlay with promotional seller accounts
+function openVinted() {
+  const overlay = document.getElementById('vinted-overlay');
+  if (overlay) {
+    overlay.style.display = 'flex';
+    if (typeof playBeep === 'function') playBeep();
+  }
+}
+function closeVinted() {
+  const overlay = document.getElementById('vinted-overlay');
+  if (overlay) {
+    overlay.style.display = 'none';
+  }
+}
+
+// Show and hide the Instagram overlay listing promoted accounts
+function openInstagram() {
+  const overlay = document.getElementById('instagram-overlay');
+  if (overlay) {
+    overlay.style.display = 'flex';
+    if (typeof playBeep === 'function') playBeep();
+  }
+}
+function closeInstagram() {
+  const overlay = document.getElementById('instagram-overlay');
+  if (overlay) {
+    overlay.style.display = 'none';
+  }
+}
 function openMinesweeper() { document.getElementById('minesweeper-overlay').style.display = 'flex'; playBeep(); msFlags=msMines; document.getElementById('mine-count').textContent=msFlags; firstClickMs=true; createMsBoard(); renderMsBoard(); }
 function closeMinesweeper() { document.getElementById('minesweeper-overlay').style.display = 'none'; }
-function openHeadrace() { document.getElementById('headrace-overlay').style.display = 'flex'; playBeep(); startHeadraceCountdown(); }
-function closeHeadrace() { document.getElementById('headrace-overlay').style.display = 'none'; if (headraceInterval) { clearInterval(headraceInterval); headraceInterval = null; } }
+// Removed headrace overlay functions
 function openArt() { document.getElementById('art-overlay').style.display = 'flex'; playBeep(); }
 function closeArt() { document.getElementById('art-overlay').style.display = 'none'; }
+
+// Timed browser overlay functions.  The browser overlay is displayed after
+// a delay on page load to draw attention to the promoted Instagram page.
+function openBrowser() {
+  const overlay = document.getElementById('browser-overlay');
+  if (overlay) {
+    overlay.style.display = 'flex';
+    if (typeof playBeep === 'function') playBeep();
+  }
+}
+function closeBrowser() {
+  const overlay = document.getElementById('browser-overlay');
+  if (overlay) {
+    overlay.style.display = 'none';
+  }
+}
+
+// Documents overlay controls
+function openDocuments() {
+  const overlay = document.getElementById('documents-overlay');
+  if (overlay) {
+    overlay.style.display = 'flex';
+    if (typeof playBeep === 'function') playBeep();
+  }
+}
+function closeDocuments() {
+  const overlay = document.getElementById('documents-overlay');
+  if (overlay) {
+    overlay.style.display = 'none';
+  }
+}
+
+// Apocryph overlay controls and password prompt
+function openApocryph() {
+  const pwd = prompt('Podaj hasło:');
+  if (pwd === null) return;
+  if (pwd === 'PePe1337') {
+    const overlay = document.getElementById('apocryph-overlay');
+    if (overlay) {
+      overlay.style.display = 'flex';
+      if (typeof playBeep === 'function') playBeep();
+    }
+  } else {
+    alert('Niepoprawne hasło!');
+  }
+}
+function closeApocryph() {
+  const overlay = document.getElementById('apocryph-overlay');
+  if (overlay) {
+    overlay.style.display = 'none';
+  }
+}
+
+// Business promotion overlay controls
+function openBusiness() {
+  const overlay = document.getElementById('business-overlay');
+  if (overlay) {
+    overlay.style.display = 'flex';
+    if (typeof playBeep === 'function') playBeep();
+  }
+}
+function closeBusiness() {
+  const overlay = document.getElementById('business-overlay');
+  if (overlay) {
+    overlay.style.display = 'none';
+  }
+}
+
+// Chat overlay controls: open and close the embedded chat window
+function openChat() {
+  const overlay = document.getElementById('chat-overlay');
+  if (overlay) {
+    overlay.style.display = 'flex';
+  }
+}
+function closeChat() {
+  const overlay = document.getElementById('chat-overlay');
+  if (overlay) {
+    overlay.style.display = 'none';
+  }
+}
+
+// ==================== MP3 Playlist and Visualisation ====================
+// Define the list of available tracks for the MP3 player.  To add your own
+// tracks, place the MP3 files into the img/ folder and add their paths to
+// this array.  The Losowo button will select randomly from this list.
+const mp3Playlist = ['img/track1.mp3', 'img/track2.mp3', 'img/frog2.mp3'];
+
+// Select a random track from the playlist and play it
+function playRandom() {
+  if (!mp3Playlist || mp3Playlist.length === 0) return;
+  const index = Math.floor(Math.random() * mp3Playlist.length);
+  selectTrack(mp3Playlist[index]);
+}
+
+// Audio visualisation using Web Audio API.  This sets up an analyser node
+// connected to the MP3 player and draws a basic equaliser on a canvas.
+let audioCtxViz;
+let analyserViz;
+let sourceViz;
+function setupVisualizer() {
+  const audioEl = document.getElementById('mp3-player');
+  const canvas = document.getElementById('audio-visualization');
+  if (!audioEl || !canvas) return;
+  const ctx = canvas.getContext('2d');
+  if (!audioCtxViz) {
+    try {
+      audioCtxViz = new (window.AudioContext || window.webkitAudioContext)();
+    } catch (e) {
+      return; // AudioContext not supported
+    }
+    try {
+      // Use captureStream if available to avoid double audio output
+      let stream;
+      if (audioEl.captureStream) {
+        stream = audioEl.captureStream();
+        sourceViz = audioCtxViz.createMediaStreamSource(stream);
+      } else {
+        sourceViz = audioCtxViz.createMediaElementSource(audioEl);
+      }
+      analyserViz = audioCtxViz.createAnalyser();
+      analyserViz.fftSize = 64;
+      sourceViz.connect(analyserViz);
+      // Connect to destination so audio is audible via Web Audio pipeline
+      sourceViz.connect(audioCtxViz.destination);
+    } catch (e) {
+      console.error('Audio visualiser setup failed', e);
+      return;
+    }
+  }
+  const bufferLength = analyserViz.frequencyBinCount;
+  const dataArray = new Uint8Array(bufferLength);
+  function draw() {
+    requestAnimationFrame(draw);
+    analyserViz.getByteFrequencyData(dataArray);
+    ctx.fillStyle = '#C0C0C0';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    const barWidth = canvas.width / bufferLength;
+    for (let i = 0; i < bufferLength; i++) {
+      const value = dataArray[i] / 255;
+      const barHeight = value * canvas.height;
+      ctx.fillStyle = '#000080';
+      ctx.fillRect(i * barWidth, canvas.height - barHeight, barWidth - 1, barHeight);
+    }
+  }
+  draw();
+}
+
+// Music player playlist control.  Selecting a track will update the audio
+// source and begin playback.  This function is used by the buttons in the
+// playlist inside the player overlay.  The audio element continues
+// playing if the overlay is closed.
+function selectTrack(src) {
+  const audio = document.getElementById('mp3-player');
+  if (!audio) return;
+  // Pause current playback and reset source
+  audio.pause();
+  audio.src = src;
+  audio.load();
+  audio.play().catch(() => {});
+}
+// ==================== Additional desktop utilities ====================
+// Text editor controls
+function openEditor() {
+  const overlay = document.getElementById('editor-overlay');
+  if (overlay) {
+    overlay.style.display = 'flex';
+    // Clear previous contents when opening
+    const textarea = document.getElementById('editor-textarea');
+    if (textarea) textarea.value = '';
+    // No beep – sound disabled
+  }
+}
+function closeEditor() {
+  const overlay = document.getElementById('editor-overlay');
+  if (overlay) {
+    overlay.style.display = 'none';
+  }
+}
+function saveDocument() {
+  const textarea = document.getElementById('editor-textarea');
+  if (!textarea) return;
+  const text = textarea.value;
+  const blob = new Blob([text], { type: 'text/plain' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'notatka.txt';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+// Music player controls
+function openPlayer() {
+  const overlay = document.getElementById('player-overlay');
+  if (overlay) {
+    overlay.style.display = 'flex';
+    const audio = document.getElementById('mp3-player');
+    if (audio) {
+      // Start playing without resetting to the beginning.  If the track is
+      // already playing, this call will have no effect.
+      audio.play().catch(() => {});
+    }
+    // Initialise the audio visualiser if not already running
+    setupVisualizer();
+    // Resume the audio context so analysis starts (required after user gesture)
+    if (audioCtxViz && audioCtxViz.state === 'suspended') {
+      audioCtxViz.resume();
+    }
+  }
+}
+function closePlayer() {
+  const overlay = document.getElementById('player-overlay');
+  if (overlay) {
+    overlay.style.display = 'none';
+    // Do not pause the audio when closing; let it continue playing in the
+    // background.  To stop playback, reopen the player and use the pause
+    // controls on the audio element.
+  }
+}
+
+// Wallpaper chooser controls
+function openWallpaper() {
+  const overlay = document.getElementById('wallpaper-overlay');
+  if (overlay) {
+    overlay.style.display = 'flex';
+  }
+}
+function closeWallpaper() {
+  const overlay = document.getElementById('wallpaper-overlay');
+  if (overlay) {
+    overlay.style.display = 'none';
+  }
+}
+function setWallpaper(file) {
+  const desktop = document.getElementById('desktop');
+  if (!desktop) return;
+  desktop.style.backgroundImage = 'url(' + file + ')';
+  desktop.style.backgroundSize = 'cover';
+  // Persist the chosen wallpaper in localStorage
+  try {
+    localStorage.setItem('wallpaper', file);
+  } catch (e) {}
+  closeWallpaper();
+}
+
+// Toast notification system
+function showNotification(msg) {
+  const container = document.getElementById('toast-container');
+  if (!container) return;
+  const div = document.createElement('div');
+  div.className = 'toast';
+  div.textContent = msg;
+  container.appendChild(div);
+  setTimeout(function() {
+    if (div.parentNode) div.parentNode.removeChild(div);
+  }, 5000);
+}
+
+// Load wallpaper from localStorage if previously selected
+(function(){
+  try {
+    const saved = localStorage.getItem('wallpaper');
+    if (saved) {
+      const desktop = document.getElementById('desktop');
+      if (desktop) {
+        desktop.style.backgroundImage = 'url(' + saved + ')';
+        desktop.style.backgroundSize = 'cover';
+      }
+    }
+  } catch (e) {}
+})();
+
+// Schedule an automatic toast notification after 45 seconds as a demo
+setTimeout(function() {
+  showNotification('Nowa promocja: sprawdź nasze okazje w sklepie!');
+}, 45000);
+
+// Initialise volume slider to control the MP3 player's volume without
+// opening the overlay.  When the slider value changes, update the audio
+// element's volume.  If the player is not yet created, the value will
+// apply once the audio element exists.
+(function(){
+  const slider = document.getElementById('volume-slider');
+  function updateVolume() {
+    const audio = document.getElementById('mp3-player');
+    if (audio) {
+      audio.volume = parseFloat(slider.value);
+    }
+  }
+  if (slider) {
+    slider.addEventListener('input', updateVolume);
+    // Apply initial volume once the audio element is ready.
+    updateVolume();
+  }
+})();
+
+// ==================== Automatic wallpaper rotation ====================
+// List of wallpapers available for automatic cycling.  Add file paths here to
+// include more backgrounds in the rotation.
+const wallpaperList = [
+  'old-windows-2vzmbvojwv0j5ua0.jpg',
+  'img/bliss.png',
+  'img/wallpaper3.png',
+  'img/wallpaper4.png'
+];
+let wallpaperIndex = 0;
+let wallpaperTimer = null;
+
+// Cycle through the wallpaper list every 40 seconds.  This function sets the
+// desktop background and schedules itself again.  It is used internally
+// when automatic rotation is enabled via the checkbox in the wallpaper
+// overlay.
+function cycleWallpaper() {
+  // Increment index and wrap around
+  wallpaperIndex = (wallpaperIndex + 1) % wallpaperList.length;
+  const file = wallpaperList[wallpaperIndex];
+  // Update desktop background directly rather than using setWallpaper(), to
+  // avoid closing the wallpaper overlay unintentionally.
+  const desktop = document.getElementById('desktop');
+  if (desktop) {
+    desktop.style.backgroundImage = 'url(' + file + ')';
+    desktop.style.backgroundSize = 'cover';
+    try {
+      localStorage.setItem('wallpaper', file);
+    } catch (e) {}
+  }
+  // Schedule next rotation after 40 seconds
+  wallpaperTimer = setTimeout(cycleWallpaper, 40000);
+}
+
+// Toggle automatic wallpaper rotation when the checkbox is changed.  If
+// enabled, start cycling wallpapers; otherwise stop and clear the timer.
+function toggleWallpaperAuto() {
+  const chk = document.getElementById('wallpaper-auto-toggle');
+  if (!chk) return;
+  if (chk.checked) {
+    // Determine current index based on current wallpaper
+    try {
+      const saved = localStorage.getItem('wallpaper');
+      if (saved) {
+        const idx = wallpaperList.indexOf(saved);
+        wallpaperIndex = idx >= 0 ? idx : 0;
+      }
+    } catch (e) {}
+    // Start cycling immediately
+    clearTimeout(wallpaperTimer);
+    wallpaperTimer = setTimeout(cycleWallpaper, 40000);
+  } else {
+    // Disable auto rotation
+    clearTimeout(wallpaperTimer);
+    wallpaperTimer = null;
+  }
+}
 // Minesweeper code
 let msRows=9, msCols=9, msMines=10; let msBoard=[], msFlags=msMines, firstClickMs=true;
+// Variables to track wins and losses for Minesweeper.  These values are
+// persisted in localStorage so that they remain across sessions.
+let msWins = 0;
+let msLosses = 0;
+// Load scores from localStorage if they exist
+function loadMsScores() {
+  try {
+    const w = localStorage.getItem('msWins');
+    const l = localStorage.getItem('msLosses');
+    msWins = w ? parseInt(w) : 0;
+    msLosses = l ? parseInt(l) : 0;
+  } catch (e) {}
+  updateMsScoreDisplay();
+}
+// Save scores to localStorage
+function saveMsScores() {
+  try {
+    localStorage.setItem('msWins', msWins);
+    localStorage.setItem('msLosses', msLosses);
+  } catch (e) {}
+}
+// Update the scoreboard text in the Minesweeper info bar
+function updateMsScoreDisplay() {
+  const winsEl = document.getElementById('ms-wins');
+  const lossesEl = document.getElementById('ms-losses');
+  if (winsEl) winsEl.textContent = msWins;
+  if (lossesEl) lossesEl.textContent = msLosses;
+}
+// Increment the appropriate score and update the display
+function updateMsScore(result) {
+  if (result === 'win') {
+    msWins++;
+  } else if (result === 'loss') {
+    msLosses++;
+  }
+  updateMsScoreDisplay();
+  saveMsScores();
+}
 function createMsBoard(){ msBoard=[]; for(let r=0;r<msRows;r++){ const row=[]; for(let c=0;c<msCols;c++){ row.push({mine:false, revealed:false, flagged:false, count:0}); } msBoard.push(row);} }
 function plantMines(skipR,skipC){ let placed=0; while(placed<msMines){ const r=Math.floor(Math.random()*msRows), c=Math.floor(Math.random()*msCols); if(!msBoard[r][c].mine && !(r===skipR && c===skipC)){ msBoard[r][c].mine=true; placed++; } } for(let r=0;r<msRows;r++){ for(let c=0;c<msCols;c++){ let cnt=0; for(let dr=-1; dr<=1; dr++){ for(let dc=-1; dc<=1; dc++){ if(dr===0 && dc===0) continue; const nr=r+dr, nc=c+dc; if(nr>=0&&nr<msRows&&nc>=0&&nc<msCols&&msBoard[nr][nc].mine) cnt++; } } msBoard[r][c].count=cnt; } } }
 function renderMsBoard(){ const board=document.getElementById('minesweeper-board'); board.innerHTML=''; for(let r=0;r<msRows;r++){ for(let c=0;c<msCols;c++){ const div=document.createElement('div'); div.className='cell'; div.dataset.row=r; div.dataset.col=c; div.oncontextmenu=(e)=>e.preventDefault(); div.addEventListener('mousedown', function(e){ const row=parseInt(this.dataset.row); const col=parseInt(this.dataset.col); if(e.button===0) revealMsCell(row,col); else if(e.button===2) flagMsCell(row,col); }); board.appendChild(div);} } }
 function flagMsCell(r,c){ const cell=msBoard[r][c]; if(cell.revealed) return; cell.flagged=!cell.flagged; const div=document.querySelector(`.cell[data-row='${r}'][data-col='${c}']`); div.textContent=cell.flagged?'🚩':''; msFlags+=cell.flagged?-1:1; document.getElementById('mine-count').textContent=msFlags; }
-function revealMsCell(r,c){ const cell=msBoard[r][c]; if(cell.revealed||cell.flagged) return; if(firstClickMs){ plantMines(r,c); firstClickMs=false; } cell.revealed=true; const div=document.querySelector(`.cell[data-row='${r}'][data-col='${c}']`); div.classList.add('revealed'); if(cell.mine){ div.textContent='💣'; setTimeout(()=>{ alert('Przegrałeś!'); closeMinesweeper(); },200); return;} if(cell.count>0){ div.textContent=cell.count; } else { for(let dr=-1; dr<=1; dr++){ for(let dc=-1; dc<=1; dc++){ const nr=r+dr, nc=c+dc; if(nr>=0&&nr<msRows&&nc>=0&&nc<msCols) revealMsCell(nr,nc); } } } checkMsWin(); }
-function checkMsWin(){ for(let r=0;r<msRows;r++){ for(let c=0;c<msCols;c++){ const cell=msBoard[r][c]; if(!cell.mine && !cell.revealed) return; } } setTimeout(()=>{ alert('Gratulacje! Wygrałeś!'); closeMinesweeper(); },100); }
+function revealMsCell(r, c) {
+  const cell = msBoard[r][c];
+  if (cell.revealed || cell.flagged) return;
+  if (firstClickMs) {
+    plantMines(r, c);
+    firstClickMs = false;
+  }
+  cell.revealed = true;
+  const div = document.querySelector(`.cell[data-row='${r}'][data-col='${c}']`);
+  div.classList.add('revealed');
+  // If the user clicked on a mine, handle loss
+  if (cell.mine) {
+    div.textContent = '💣';
+    setTimeout(() => {
+      updateMsScore('loss');
+      alert('Przegrałeś!');
+      closeMinesweeper();
+    }, 200);
+    return;
+  }
+  // If the cell has adjacent mines, show the count
+  if (cell.count > 0) {
+    div.textContent = cell.count;
+  } else {
+    // Otherwise reveal surrounding cells recursively
+    for (let dr = -1; dr <= 1; dr++) {
+      for (let dc = -1; dc <= 1; dc++) {
+        const nr = r + dr, nc = c + dc;
+        if (nr >= 0 && nr < msRows && nc >= 0 && nc < msCols) {
+          revealMsCell(nr, nc);
+        }
+      }
+    }
+  }
+  checkMsWin();
+}
+function checkMsWin() {
+  for (let r = 0; r < msRows; r++) {
+    for (let c = 0; c < msCols; c++) {
+      const cell = msBoard[r][c];
+      if (!cell.mine && !cell.revealed) return;
+    }
+  }
+  // The player has won: update the win counter and close the game after showing a message
+  setTimeout(() => {
+    updateMsScore('win');
+    alert('Gratulacje! Wygrałeś!');
+    closeMinesweeper();
+  }, 100);
+}
 document.getElementById('reset-button').addEventListener('click', openMinesweeper);
-// Headrace countdown
-let headraceInterval;
-function startHeadraceCountdown(){ const target=new Date('2025-09-01T00:00:00'); const el=document.getElementById('headrace-countdown'); function update(){ const now=new Date(); const diff=target-now; if(diff<=0){ el.textContent='Nadszedł 1 września 2025!'; if(headraceInterval){ clearInterval(headraceInterval); headraceInterval=null; } return; } let secs=Math.floor(diff/1000); const days=Math.floor(secs/(24*3600)); secs-=days*24*3600; const hrs=Math.floor(secs/3600); secs-=hrs*3600; const mins=Math.floor(secs/60); secs-=mins*60; el.textContent=`${days}d ${hrs}h ${mins}m ${secs}s do 1 września 2025`; } update(); if(headraceInterval) clearInterval(headraceInterval); headraceInterval=setInterval(update,1000); }
+// Load Minesweeper scores on page load
+loadMsScores();
+// Removed headrace countdown logic
 // ART gallery logic
 let currentArtCategory='sale'; const artUpload=document.getElementById('art-upload'); document.getElementById('add-sale-btn').addEventListener('click',function(){ currentArtCategory='sale'; artUpload.click(); }); document.getElementById('add-sold-btn').addEventListener('click',function(){ currentArtCategory='sold'; artUpload.click(); }); artUpload.addEventListener('change', function(e){ const files=e.target.files; Array.from(files).forEach(file=>{ const reader=new FileReader(); reader.onload=function(ev){ addArtItem(ev.target.result, currentArtCategory); }; reader.readAsDataURL(file); }); this.value=''; }); function addArtItem(src, category){ const item=document.createElement('div'); item.className='art-item'; const img=document.createElement('img'); img.src=src; item.appendChild(img); if(category==='sale'){ const btn=document.createElement('button'); btn.textContent='Sprzedano'; btn.addEventListener('click', function(){ document.getElementById('gallery-sold').appendChild(item); btn.remove(); }); item.appendChild(btn); document.getElementById('gallery-sale').appendChild(item); } else { document.getElementById('gallery-sold').appendChild(item); } }
 // Dragging and clicking icons
 (function(){ const icons=document.querySelectorAll('#desktop .icon'); icons.forEach(icon=>{ let startX,startY,offX,offY,moved; function onMouseMove(ev){ icon.style.left=(ev.clientX-offX)+'px'; icon.style.top=(ev.clientY-offY)+'px'; moved=true; }
-      function onMouseUp(ev){ document.removeEventListener('mousemove',onMouseMove); document.removeEventListener('mouseup',onMouseUp); const dx=Math.abs(ev.clientX-startX); const dy=Math.abs(ev.clientY-startY); if(!moved|| (dx<4 && dy<4)){ const msg=icon.dataset.message; const action=icon.dataset.action; const href=icon.dataset.href; if(msg){ alert(msg); } else if(action){ if(action==='openVinted') openVinted(); else if(action==='openMinesweeper') openMinesweeper(); else if(action==='openHeadrace') openHeadrace(); else if(action==='openArt') openArt(); } else if(href){ if(href.startsWith('./')||href.endsWith('.html')){ window.location.href=href; } else { window.open(href,'_blank'); } } } }
+      function onMouseUp(ev){
+        document.removeEventListener('mousemove', onMouseMove);
+        document.removeEventListener('mouseup', onMouseUp);
+        const dx = Math.abs(ev.clientX - startX);
+        const dy = Math.abs(ev.clientY - startY);
+        if (!moved || (dx < 4 && dy < 4)) {
+          const msg = icon.dataset.message;
+          const action = icon.dataset.action;
+          const href = icon.dataset.href;
+          if (msg) {
+            alert(msg);
+          } else if (action) {
+            // Map icon actions to functions.  When adding new actions (e.g. openInstagram),
+            // define the corresponding function in the script section.
+            if (action === 'openVinted') {
+              openVinted();
+            } else if (action === 'openMinesweeper') {
+              openMinesweeper();
+            } else if (action === 'openArt') {
+              openArt();
+            } else if (action === 'openInstagram') {
+              openInstagram();
+            } else if (action === 'openNewsletter') {
+              // Show the newsletter overlay when the newsletter icon is clicked
+              const nl = document.getElementById('newsletter-overlay');
+              if (nl) {
+                nl.style.display = 'flex';
+                // beep disabled
+              }
+            } else if (action === 'openDocuments') {
+              openDocuments();
+            } else if (action === 'openApocryph') {
+              openApocryph();
+            } else if (action === 'openEditor') {
+              openEditor();
+            } else if (action === 'openPlayer') {
+              openPlayer();
+            } else if (action === 'openWallpaper') {
+              openWallpaper();
+            } else if (action === 'openChat') {
+              openChat();
+            } else if (action === 'showNotification') {
+              // Display a sample notification
+              showNotification('Przykładowe powiadomienie!');
+            }
+          } else if (href) {
+            if (href.startsWith('./') || href.endsWith('.html')) {
+              window.location.href = href;
+            } else {
+              window.open(href, '_blank');
+            }
+          }
+        }
+      }
       icon.addEventListener('mousedown',function(e){ if(e.button!==0) return; e.preventDefault(); startX=e.clientX; startY=e.clientY; offX=e.clientX-icon.offsetLeft; offY=e.clientY-icon.offsetTop; moved=false; document.addEventListener('mousemove',onMouseMove); document.addEventListener('mouseup',onMouseUp); }); }); })();
+
+// Advertisement bar logic
+// We rotate two different ads: the first encourages users to email us to promote
+// their business, and the second falls back to the generic advertisement link.
+// adState == 0 => first ad (mailto link); adState == 1 => second ad (external site).
+let adState = 0;
+const adBar = document.getElementById('ad-bar');
+const adTextEl = adBar.querySelector('.ad-text');
+// Initialise the ad bar with the first message and click handler.
+function setFirstAd() {
+  adState = 0;
+  // Update the scrolling text.  We use innerHTML so we can include special
+  // characters or styling if needed.
+  if (adTextEl) {
+    adTextEl.innerHTML = 'Reklama: Zareklamuj swój biznes już dziś – napisz do NAS mail: priceheckstore@gmail.com';
+  }
+}
+function setSecondAd() {
+  adState = 1;
+  if (adTextEl) {
+    adTextEl.textContent = 'Reklama: Kliknij tutaj, aby odwiedzić reklamowaną stronę!';
+  }
+}
+function handleAdClick() {
+  if (adState === 0) {
+    // Open the default mail client to send an email
+    window.location.href = 'mailto:priceheckstore@gmail.com';
+  } else {
+    // Open the external advertised page
+    window.open('https://example-ad.com', '_blank');
+  }
+}
+setFirstAd();
+adBar.addEventListener('click', handleAdClick);
+// After 20 seconds, switch to the second advertisement
+setTimeout(function() {
+  setSecondAd();
+}, 20000);
+
+// After 30 seconds, show a promotional pop-up encouraging visitors to promote their business.
+setTimeout(function() {
+  openBusiness();
+}, 30000);
+
+// Automatically open the retro browser overlay after 15 seconds on page load.
+// The overlay will show the Instagram page specified in the iframe.  To change
+// which Instagram account is displayed, edit the src attribute of the
+// <iframe id="browser-frame"> element above.  You can also adjust the delay
+// (currently 15000 milliseconds) by changing the value below.
+setTimeout(function() {
+  openBrowser();
+}, 15000);
 </script>
 </body>
 </html>
