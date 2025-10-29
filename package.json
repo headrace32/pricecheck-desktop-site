@@ -1,0 +1,28 @@
+{
+  "name": "siteplace-desktop",
+  "version": "1.0.0",
+  "description": "desktop website",
+  "keywords": [
+    "desktop"
+  ],
+  "homepage": "https://github.com/headrace32/pricecheck-desktop-site#readme",
+  "bugs": {
+    "url": "https://github.com/headrace32/pricecheck-desktop-site/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/headrace32/pricecheck-desktop-site.git"
+  },
+  "license": "ISC",
+  "author": "Noigel",
+  "type": "commonjs",
+  "main": "src/main.js",
+  "scripts": {
+    "test": "task",
+    "prepare": "husky"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.3.2",
+    "husky": "^9.1.7"
+  }
+}
